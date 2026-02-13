@@ -78,24 +78,31 @@ const Dashboard: React.FC<DashboardProps> = ({
     useEffect(() => {
         const fetchWeather = async () => {
             try {
+                // Using 'current' parameter for more accurate real-time data and explicit timezone
                 const res = await fetch(
-                    "https://api.open-meteo.com/v1/forecast?latitude=37.2636&longitude=127.0286&current_weather=true&timezone=auto",
+                    "https://api.open-meteo.com/v1/forecast?latitude=37.2636&longitude=127.0286&current=temperature_2m,weather_code&timezone=Asia%2FSeoul",
                 );
                 const data = await res.json();
-                const { temperature, weathercode } = data.current_weather;
+
+                if (!data.current) return;
+
+                const { temperature_2m, weather_code } = data.current;
 
                 // WMO Weather interpretation
                 let text = "맑음";
-                if (weathercode >= 1 && weathercode <= 3) text = "구름 조금";
-                if (weathercode >= 45 && weathercode <= 48) text = "안개";
-                if (weathercode >= 51 && weathercode <= 67) text = "비";
-                if (weathercode >= 71 && weathercode <= 77) text = "눈";
-                if (weathercode >= 80 && weathercode <= 82) text = "소나기";
-                if (weathercode >= 95) text = "뇌우";
+                if (weather_code >= 1 && weather_code <= 3) text = "구름 조금";
+                else if (weather_code >= 45 && weather_code <= 48)
+                    text = "안개";
+                else if (weather_code >= 51 && weather_code <= 67) text = "비";
+                else if (weather_code >= 71 && weather_code <= 77) text = "눈";
+                else if (weather_code >= 80 && weather_code <= 82)
+                    text = "소나기";
+                else if (weather_code >= 85 && weather_code <= 86) text = "눈";
+                else if (weather_code >= 95) text = "뇌우";
 
                 setWeather({
-                    temp: temperature,
-                    code: weathercode,
+                    temp: temperature_2m,
+                    code: weather_code,
                     text,
                 });
             } catch (error) {
@@ -118,6 +125,8 @@ const Dashboard: React.FC<DashboardProps> = ({
             return <CloudSnow size={14} className="text-sky-300 mr-2" />;
         if (code >= 80 && code <= 82)
             return <CloudRain size={14} className="text-blue-500 mr-2" />;
+        if (code >= 85 && code <= 86)
+            return <CloudSnow size={14} className="text-sky-300 mr-2" />;
         if (code >= 95)
             return (
                 <CloudLightning size={14} className="text-yellow-500 mr-2" />
