@@ -28,7 +28,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         { id: "schedule", label: "일정 / 연차", icon: Calendar },
         { id: "workspace", label: "워크스페이스", icon: BookOpen },
         { id: "mypage", label: "마이페이지", icon: UserCircle },
-        { id: "members", label: "멤버", icon: Users },
+        { id: "members", label: "구성원", icon: Users },
     ];
 
     return (
