@@ -280,7 +280,7 @@ const App: React.FC = () => {
                         {activeTab === "schedule" && "일정 및 연차 관리"}
                         {activeTab === "workspace" && "워크스페이스"}
                         {activeTab === "mypage" && "마이페이지"}
-                        {activeTab === "members" && "구성원 관리"}
+                        {activeTab === "members" && "구성원"}
                     </h1>
                 </header>
 
@@ -330,11 +330,7 @@ const App: React.FC = () => {
                                 currentUser={currentUser}
                                 users={users}
                                 onAddUser={handleAddUser}
-                                onDeleteUser={
-                                    currentUser.role === "Admin"
-                                        ? handleDeleteUser
-                                        : null
-                                }
+                                onDeleteUser={handleDeleteUser}
                             />
                         )}
                     </div>
