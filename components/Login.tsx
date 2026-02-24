@@ -20,7 +20,7 @@ interface LoginProps {
 // Pseudo-domain for mapping IDs to Firebase Email Auth
 const ID_SUFFIX = "@teamsync.app";
 
-const Login: React.FC<LoginProps> = ({ onLogin, onRegister }) => {
+const Login: React.FC<LoginProps> = ({ onLogin: _onLogin, onRegister }) => {
     const [isLoginMode, setIsLoginMode] = useState(true);
     const [formData, setFormData] = useState({
         id: "",
@@ -39,7 +39,12 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRegister }) => {
         setError("");
     };
 
-    const getEmailFromId = (id: string) => `${id}${ID_SUFFIX}`;
+    const getEmailFromId = (id: string) => {
+        if (id.endsWith(ID_SUFFIX)) {
+            return id;
+        }
+        return `${id}${ID_SUFFIX}`;
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -80,10 +85,16 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRegister }) => {
                         displayName: formData.name,
                     });
 
+                    // Auto-assign Admin role if ID and Name are both 'admin'
+                    const initialRole =
+                        formData.id === "admin" && formData.name === "admin"
+                            ? "Admin"
+                            : "Member";
+
                     const newUser: User = {
                         id: firebaseUser.uid,
                         name: formData.name,
-                        role: "Member",
+                        role: initialRole,
                     };
 
                     // Save user data to Firestore
@@ -180,7 +191,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRegister }) => {
                                 name="id"
                                 required
                                 className="w-full border-slate-200 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2.5 pl-10 border transition-all"
-                                placeholder="아이디 입력"
+                                placeholder={"아이디 입력"}
                                 value={formData.id}
                                 onChange={handleChange}
                                 autoCapitalize="none"

@@ -1,6 +1,13 @@
 import React, { useState } from "react";
 import { User } from "../types";
-import { Trash2, Shield, User as UserIcon, ShieldCheck } from "lucide-react";
+import {
+    Trash2,
+    Shield,
+    User as UserIcon,
+    ShieldCheck,
+    Plus,
+    Check,
+} from "lucide-react";
 
 interface MemberManagementProps {
     currentUser: User;
@@ -15,6 +22,14 @@ const MemberManagement: React.FC<MemberManagementProps> = ({
     onAddUser,
     onDeleteUser,
 }) => {
+    const [isAdding, setIsAdding] = useState(false);
+    const [newUser, setNewUser] = useState({
+        id: "",
+        name: "",
+        password: "",
+        role: "Member" as "Admin" | "Member",
+    });
+
     const handleDelete = (userId: string) => {
         if (userId === currentUser.id) {
             alert("자신의 계정은 삭제할 수 없습니다.");
@@ -25,11 +40,146 @@ const MemberManagement: React.FC<MemberManagementProps> = ({
         }
     };
 
+    const handleAddSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newUser.id || !newUser.name || !newUser.password) {
+            alert("모든 필드를 입력해주세요.");
+            return;
+        }
+
+        // Simple ID validation
+        if (users.some((u) => u.id === newUser.id)) {
+            alert("이미 존재하는 아이디입니다.");
+            return;
+        }
+
+        onAddUser({
+            id: newUser.id,
+            name: newUser.name,
+            role: newUser.role,
+            password: newUser.password,
+        });
+
+        setIsAdding(false);
+        setNewUser({ id: "", name: "", password: "", role: "Member" });
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-slate-800">구성원</h2>
+                <h2 className="text-2xl font-bold text-slate-800">
+                    구성원 관리
+                </h2>
+                {currentUser.role === "Admin" && (
+                    <button
+                        onClick={() => setIsAdding(true)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors shadow-sm"
+                    >
+                        <Plus size={16} />
+                        <span>구성원 추가</span>
+                    </button>
+                )}
             </div>
+
+            {isAdding && (
+                <div className="bg-white p-6 rounded-xl shadow-md border border-blue-100 mb-6 animate-fade-in-down">
+                    <h3 className="text-lg font-semibold text-slate-800 mb-4">
+                        새 구성원 추가
+                    </h3>
+                    <form
+                        onSubmit={handleAddSubmit}
+                        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                    >
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                                아이디 (이메일)
+                            </label>
+                            <input
+                                type="text"
+                                value={newUser.id}
+                                onChange={(e) =>
+                                    setNewUser({
+                                        ...newUser,
+                                        id: e.target.value,
+                                    })
+                                }
+                                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                placeholder="user@teamsync.app"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                                이름
+                            </label>
+                            <input
+                                type="text"
+                                value={newUser.name}
+                                onChange={(e) =>
+                                    setNewUser({
+                                        ...newUser,
+                                        name: e.target.value,
+                                    })
+                                }
+                                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                placeholder="홍길동"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                                비밀번호
+                            </label>
+                            <input
+                                type="password"
+                                value={newUser.password}
+                                onChange={(e) =>
+                                    setNewUser({
+                                        ...newUser,
+                                        password: e.target.value,
+                                    })
+                                }
+                                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                placeholder="******"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                                권한
+                            </label>
+                            <select
+                                value={newUser.role}
+                                onChange={(e) =>
+                                    setNewUser({
+                                        ...newUser,
+                                        role: e.target.value as
+                                            | "Admin"
+                                            | "Member",
+                                    })
+                                }
+                                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                            >
+                                <option value="Member">Member</option>
+                                <option value="Admin">Admin</option>
+                            </select>
+                        </div>
+                        <div className="md:col-span-2 flex justify-end gap-2 mt-2">
+                            <button
+                                type="button"
+                                onClick={() => setIsAdding(false)}
+                                className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium transition-colors"
+                            >
+                                취소
+                            </button>
+                            <button
+                                type="submit"
+                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
+                            >
+                                <Check size={16} />
+                                <span>추가하기</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
 
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 <table className="w-full">

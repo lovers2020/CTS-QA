@@ -33,7 +33,10 @@ const Sidebar: React.FC<SidebarProps> = ({
 
     return (
         <div className="w-64 bg-slate-900 text-white flex flex-col h-full shadow-xl">
-            <div className="p-6 flex items-center space-x-3 border-b border-slate-800">
+            <div
+                className="p-6 flex items-center space-x-3 border-b border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors"
+                onClick={() => setActiveTab("dashboard")}
+            >
                 <Hexagon className="text-blue-500 w-8 h-8" strokeWidth={2.5} />
                 <span className="text-xl font-bold tracking-tight">
                     TeamSync

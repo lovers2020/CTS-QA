@@ -25,6 +25,7 @@ export interface Folder {
     name: string;
     userId: string;
     createdAt: string;
+    category?: "Personal" | "Team";
 }
 
 export interface Doc {
@@ -49,6 +50,7 @@ export interface User {
 
 export interface Task {
     id: string;
+    userId: string;
     title: string;
     dueDate: string;
     completed: boolean;

@@ -27,28 +27,32 @@ const App: React.FC = () => {
 
     // Authentication Observer
     useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
-            if (firebaseUser) {
-                // Fetch extended user profile (role, name) from Firestore
-                const userDocRef = db.collection("users").doc(firebaseUser.uid);
-                const userSnap = await userDocRef.get();
+        const unsubscribe = auth.onAuthStateChanged(
+            async (firebaseUser: any) => {
+                if (firebaseUser) {
+                    // Fetch extended user profile (role, name) from Firestore
+                    const userDocRef = db
+                        .collection("users")
+                        .doc(firebaseUser.uid);
+                    const userSnap = await userDocRef.get();
 
-                if (userSnap.exists) {
-                    const userData = userSnap.data() as User;
-                    setCurrentUser({ ...userData, id: firebaseUser.uid });
+                    if (userSnap.exists) {
+                        const userData = userSnap.data() as User;
+                        setCurrentUser({ ...userData, id: firebaseUser.uid });
+                    } else {
+                        // Fallback if user doc doesn't exist yet (shouldn't happen with correct flow)
+                        setCurrentUser({
+                            id: firebaseUser.uid,
+                            name: firebaseUser.email?.split("@")[0] || "User",
+                            role: "Member",
+                        });
+                    }
                 } else {
-                    // Fallback if user doc doesn't exist yet (shouldn't happen with correct flow)
-                    setCurrentUser({
-                        id: firebaseUser.uid,
-                        name: firebaseUser.email?.split("@")[0] || "User",
-                        role: "Member",
-                    });
+                    setCurrentUser(null);
                 }
-            } else {
-                setCurrentUser(null);
-            }
-            setIsLoading(false);
-        });
+                setIsLoading(false);
+            },
+        );
 
         return () => unsubscribe();
     }, []);
@@ -62,18 +66,21 @@ const App: React.FC = () => {
                     const [
                         fetchedSchedules,
                         fetchedDocs,
+                        fetchedFolders,
                         fetchedTasks,
                         fetchedActivities,
                         fetchedUsers,
                     ] = await Promise.all([
                         api.getSchedules(),
                         api.getDocs(),
-                        api.getTasks(),
+                        api.getFolders(),
+                        api.getTasks(currentUser.id),
                         api.getActivities(),
                         api.getUsers(),
                     ]);
                     setSchedules(fetchedSchedules);
                     setDocs(fetchedDocs);
+                    setFolders(fetchedFolders);
                     setTasks(fetchedTasks);
                     setActivities(fetchedActivities);
                     setUsers(fetchedUsers);
@@ -86,13 +93,16 @@ const App: React.FC = () => {
     }, [currentUser]);
 
     // Login/Register just updates state locally if needed, but Auth Observer handles the main logic
-    const handleLogin = (user: User) => {
+    const handleLogin = (_user: User) => {
         // handled by onAuthStateChanged
         setActiveTab("dashboard");
     };
 
     const handleRegister = (user: User) => {
-        setUsers((prev) => [...prev, user]);
+        setUsers((prev) => {
+            if (prev.some((u) => u.id === user.id)) return prev;
+            return [...prev, user];
+        });
         // handled by onAuthStateChanged
         setActiveTab("dashboard");
     };
@@ -101,8 +111,10 @@ const App: React.FC = () => {
         await auth.signOut();
         setSchedules([]);
         setDocs([]);
+        setFolders([]);
         setTasks([]);
         setActivities([]);
+        setUsers([]); // Clear users on logout
         setActiveTab("dashboard");
     };
 
@@ -126,12 +138,21 @@ const App: React.FC = () => {
 
         // If ID changed, we also need to reload data to ensure references are correct
         if (updatedData.id && updatedData.id !== currentUser.id) {
-            const [fetchedSchedules, fetchedDocs] = await Promise.all([
+            const [
+                fetchedSchedules,
+                fetchedDocs,
+                fetchedFolders,
+                fetchedTasks,
+            ] = await Promise.all([
                 api.getSchedules(),
                 api.getDocs(),
+                api.getFolders(),
+                api.getTasks(updatedData.id),
             ]);
             setSchedules(fetchedSchedules);
             setDocs(fetchedDocs);
+            setFolders(fetchedFolders);
+            setTasks(fetchedTasks);
         }
     };
 
@@ -151,7 +172,7 @@ const App: React.FC = () => {
     // --- Workspace Logic with API ---
     const handleAddDoc = async (doc: Doc) => {
         setDocs((prev) => [...prev, doc]);
-        await api.saveDoc(doc, true);
+        await api.saveDoc(doc);
 
         const activityLog = await api.logActivity({
             user: currentUser?.name || "Unknown",
@@ -165,7 +186,7 @@ const App: React.FC = () => {
         setDocs((prev) =>
             prev.map((d) => (d.id === updatedDoc.id ? updatedDoc : d)),
         );
-        await api.saveDoc(updatedDoc, false);
+        await api.saveDoc(updatedDoc);
     };
 
     const handleDeleteDoc = async (id: string) => {
@@ -173,16 +194,34 @@ const App: React.FC = () => {
         await api.deleteDoc(id);
     };
 
-    const handleAddFolder = (folder: Folder) => {
+    const handleAddFolder = async (folder: Folder) => {
         setFolders((prev) => [...prev, folder]);
+        await api.addFolder(folder);
     };
 
-    const handleDeleteFolder = (folderId: string) => {
+    const handleUpdateFolder = async (folder: Folder) => {
+        setFolders((prev) =>
+            prev.map((f) => (f.id === folder.id ? folder : f)),
+        );
+        await api.updateFolder(folder);
+    };
+
+    const handleDeleteFolder = async (folderId: string) => {
+        // Optimistic Update
         setFolders((prev) => prev.filter((f) => f.id !== folderId));
         setDocs((prev) =>
             prev.map((d) =>
                 d.folderId === folderId ? { ...d, folderId: undefined } : d,
             ),
+        );
+
+        // API Call
+        await api.deleteFolder(folderId);
+
+        // Update orphaned docs in DB
+        const orphanedDocs = docs.filter((d) => d.folderId === folderId);
+        await Promise.all(
+            orphanedDocs.map((d) => api.saveDoc({ ...d, folderId: undefined })),
         );
     };
 
@@ -195,12 +234,7 @@ const App: React.FC = () => {
 
             // Only log if becoming completed AND hasn't been logged before
             if (isNowCompleted && !task.hasLoggedCompletion) {
-                const activityLog = await api.logActivity({
-                    user: currentUser?.name || "Unknown",
-                    action: "할 일 완료",
-                    target: task.title,
-                });
-                setActivities((prev) => [activityLog, ...prev]);
+                // Removed activity logging for private tasks
 
                 // Mark as logged so we don't log again
                 updatedTask.hasLoggedCompletion = true;
@@ -217,8 +251,10 @@ const App: React.FC = () => {
         title: string,
         priority: "High" | "Medium" | "Low",
     ) => {
+        if (!currentUser) return;
         const newTask: Task = {
             id: Math.random().toString(36).substr(2, 9),
+            userId: currentUser.id,
             title,
             dueDate: "오늘",
             completed: false,
@@ -240,9 +276,10 @@ const App: React.FC = () => {
     };
 
     // Member Management Logic
-    const handleAddUser = (user: User) => {
+    const handleAddUser = async (user: User) => {
         // Admin only feature usually
         setUsers((prev) => [...prev, user]);
+        await api.saveUser(user);
     };
 
     const handleDeleteUser = async (userId: string) => {
@@ -316,6 +353,7 @@ const App: React.FC = () => {
                                 onUpdateDoc={handleUpdateDoc}
                                 onDeleteDoc={handleDeleteDoc}
                                 onAddFolder={handleAddFolder}
+                                onUpdateFolder={handleUpdateFolder}
                                 onDeleteFolder={handleDeleteFolder}
                             />
                         )}

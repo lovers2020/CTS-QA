@@ -13,17 +13,11 @@ import {
     Circle,
     FileText,
     CalendarPlus,
-    Video,
-    Home,
-    Briefcase,
     Plus,
     Bell,
     ArrowRight,
     Sun,
-    Plane,
-    Users,
     Trash2,
-    Cloud,
     CloudRain,
     CloudSnow,
     CloudLightning,
@@ -46,7 +40,7 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({
     user,
-    users,
+    users: _users,
     schedules,
     docs,
     tasks,
@@ -486,7 +480,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 업데이트 피드
                             </h3>
                         </div>
-                        <div className="space-y-4 relative pl-2">
+                        <div className="space-y-4 relative pl-2 max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 pr-2">
                             <div className="absolute left-2 top-2 bottom-2 w-px bg-slate-100"></div>
                             {activities.map((activity) => (
                                 <div
