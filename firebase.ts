@@ -54,7 +54,7 @@ if (apiKey && !apiKey.includes("여기에") && apiKey.length > 10) {
             id: user.uid,
             name: user.displayName || user.uid,
             role: user.role || "Member",
-            // Removed email field requirements
+            password: user.password,
         };
 
         if (existingIndex >= 0) {
@@ -90,7 +90,10 @@ if (apiKey && !apiKey.includes("여기에") && apiKey.length > 10) {
         },
         // We keep the method name 'signInWithEmailAndPassword' to match Firebase interface,
         // but we treat the first argument 'email' as the 'ID' (username).
-        signInWithEmailAndPassword: async (loginId: string) => {
+        signInWithEmailAndPassword: async (
+            loginId: string,
+            password?: string,
+        ) => {
             // Check if this user exists in our "mock database" (localStorage)
             const users = JSON.parse(
                 localStorage.getItem("mock_firestore_users") || "[]",
@@ -102,6 +105,17 @@ if (apiKey && !apiKey.includes("여기에") && apiKey.length > 10) {
             // const role = isAdmin ? 'Admin' : 'Member'; // Unused
 
             if (existingUser) {
+                // Verify password if it exists
+                if (
+                    existingUser.password &&
+                    password &&
+                    existingUser.password !== password
+                ) {
+                    const error: any = new Error("Wrong password");
+                    error.code = "auth/wrong-password";
+                    throw error;
+                }
+
                 // User exists, login success
                 const user = {
                     uid: existingUser.id,
@@ -121,6 +135,7 @@ if (apiKey && !apiKey.includes("여기에") && apiKey.length > 10) {
                         uid: loginId,
                         displayName: "Admin User",
                         role: "Admin",
+                        password,
                     };
                     localStorage.setItem("mock_user", JSON.stringify(user));
                     syncUserToFirestore(user);
@@ -136,7 +151,10 @@ if (apiKey && !apiKey.includes("여기에") && apiKey.length > 10) {
             }
         },
         // Treat 'email' argument as 'loginId'
-        createUserWithEmailAndPassword: async (loginId: string) => {
+        createUserWithEmailAndPassword: async (
+            loginId: string,
+            password?: string,
+        ) => {
             // Check duplication
             const users = JSON.parse(
                 localStorage.getItem("mock_firestore_users") || "[]",
@@ -151,7 +169,7 @@ if (apiKey && !apiKey.includes("여기에") && apiKey.length > 10) {
             const isAdmin = loginId.toLowerCase().includes("admin");
             const role = isAdmin ? "Admin" : "Member";
 
-            const user = { uid, displayName: loginId, role };
+            const user = { uid, displayName: loginId, role, password };
 
             localStorage.setItem("mock_user", JSON.stringify(user));
             syncUserToFirestore(user);

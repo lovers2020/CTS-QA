@@ -385,7 +385,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
                                                     if (e.key === "Escape")
                                                         handleCancelRenaming();
                                                 }}
-                                                className="flex-1 text-xs border border-blue-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                className="flex-1 text-s border border-blue-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                                 onClick={(e) =>
                                                     e.stopPropagation()
                                                 }
@@ -441,7 +441,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
                                                     className="p-1 hover:bg-slate-300 rounded text-slate-400 hover:text-blue-500 transition-all mr-1"
                                                     title="이름 변경"
                                                 >
-                                                    <Edit2 size={12} />
+                                                    <Edit2 size={16} />
                                                 </button>
                                                 <button
                                                     type="button"
@@ -473,7 +473,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
                                                             selectedDocId ===
                                                             doc.id
                                                                 ? "bg-slate-200 text-slate-900"
-                                                                : "text-slate-500 hover:bg-slate-100"
+                                                                : "text-slate-700 hover:bg-slate-100"
                                                         }`}
                                                     >
                                                         {isDocRenaming ? (
@@ -504,7 +504,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
                                                                     )
                                                                         handleCancelRenaming();
                                                                 }}
-                                                                className="flex-1 text-xs border border-blue-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                                className="flex-1 text-s border border-blue-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                                                 onClick={(e) =>
                                                                     e.stopPropagation()
                                                                 }
@@ -547,6 +547,25 @@ const Workspace: React.FC<WorkspaceProps> = ({
                                                                 >
                                                                     <Edit2
                                                                         size={
+                                                                            16
+                                                                        }
+                                                                    />
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(
+                                                                        e,
+                                                                    ) => {
+                                                                        e.stopPropagation();
+                                                                        handleDeleteDocInternal(
+                                                                            doc.id,
+                                                                        );
+                                                                    }}
+                                                                    className="p-1 hover:bg-slate-300 rounded text-slate-400 hover:text-red-500 transition-all"
+                                                                    title="삭제"
+                                                                >
+                                                                    <Trash2
+                                                                        size={
                                                                             12
                                                                         }
                                                                     />
@@ -564,7 +583,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
                                                         folder.id,
                                                     )
                                                 }
-                                                className="w-full flex items-center space-x-2 px-2 py-1 text-xs text-slate-400 hover:text-blue-600 hover:bg-slate-50 rounded-md transition-colors"
+                                                className="w-full flex items-center space-x-2 px-2 py-1 text-xs text-slate-500 hover:text-blue-600 hover:bg-slate-50 rounded-md transition-colors"
                                             >
                                                 <Plus size={12} />
                                                 <span>페이지 추가</span>
@@ -603,7 +622,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
                                                 if (e.key === "Escape")
                                                     handleCancelRenaming();
                                             }}
-                                            className="flex-1 text-xs border border-blue-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                            className="flex-1 text-s border border-blue-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                             onClick={(e) => e.stopPropagation()}
                                         />
                                     ) : (
@@ -638,7 +657,20 @@ const Workspace: React.FC<WorkspaceProps> = ({
                                                 className="p-1 hover:bg-slate-300 rounded text-slate-400 hover:text-blue-500 transition-all mr-1"
                                                 title="이름 변경"
                                             >
-                                                <Edit2 size={12} />
+                                                <Edit2 size={16} />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDeleteDocInternal(
+                                                        doc.id,
+                                                    );
+                                                }}
+                                                className="p-1 hover:bg-slate-300 rounded text-slate-400 hover:text-red-500 transition-all"
+                                                title="삭제"
+                                            >
+                                                <Trash2 size={12} />
                                             </button>
                                         </div>
                                     )}
@@ -649,7 +681,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
                         <button
                             type="button"
                             onClick={() => handleCreateDoc("Personal")}
-                            className="w-full flex items-center space-x-2 px-2 py-1.5 text-sm text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
+                            className="w-full flex items-center space-x-2 px-2 py-1.5 text-sm text-slate-500 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
                         >
                             <Plus size={14} />
                             <span>새 페이지 추가</span>
@@ -730,7 +762,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
                                                     if (e.key === "Escape")
                                                         handleCancelRenaming();
                                                 }}
-                                                className="flex-1 text-xs border border-blue-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                className="flex-1 text-s border border-blue-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                                 onClick={(e) =>
                                                     e.stopPropagation()
                                                 }
@@ -786,7 +818,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
                                                     className="p-1 hover:bg-slate-300 rounded text-slate-400 hover:text-blue-500 transition-all mr-1"
                                                     title="이름 변경"
                                                 >
-                                                    <Edit2 size={12} />
+                                                    <Edit2 size={16} />
                                                 </button>
                                                 <button
                                                     type="button"
@@ -818,7 +850,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
                                                             selectedDocId ===
                                                             doc.id
                                                                 ? "bg-slate-200 text-slate-900"
-                                                                : "text-slate-500 hover:bg-slate-100"
+                                                                : "text-slate-600 hover:bg-slate-100"
                                                         }`}
                                                     >
                                                         {isDocRenaming ? (
@@ -849,7 +881,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
                                                                     )
                                                                         handleCancelRenaming();
                                                                 }}
-                                                                className="flex-1 text-xs border border-blue-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                                className="flex-1 text-s border border-blue-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                                                 onClick={(e) =>
                                                                     e.stopPropagation()
                                                                 }
@@ -896,6 +928,25 @@ const Workspace: React.FC<WorkspaceProps> = ({
                                                                         }
                                                                     />
                                                                 </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(
+                                                                        e,
+                                                                    ) => {
+                                                                        e.stopPropagation();
+                                                                        handleDeleteDocInternal(
+                                                                            doc.id,
+                                                                        );
+                                                                    }}
+                                                                    className="p-1 hover:bg-slate-300 rounded text-slate-400 hover:text-red-500 transition-all"
+                                                                    title="삭제"
+                                                                >
+                                                                    <Trash2
+                                                                        size={
+                                                                            12
+                                                                        }
+                                                                    />
+                                                                </button>
                                                             </div>
                                                         )}
                                                     </div>
@@ -909,7 +960,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
                                                         folder.id,
                                                     )
                                                 }
-                                                className="w-full flex items-center space-x-2 px-2 py-1 text-xs text-slate-400 hover:text-blue-600 hover:bg-slate-50 rounded-md transition-colors"
+                                                className="w-full flex items-center space-x-2 px-2 py-1 text-xs text-slate-500 hover:text-blue-600 hover:bg-slate-50 rounded-md transition-colors"
                                             >
                                                 <Plus size={12} />
                                                 <span>페이지 추가</span>
@@ -947,7 +998,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
                                                 if (e.key === "Escape")
                                                     handleCancelRenaming();
                                             }}
-                                            className="flex-1 text-xs border border-blue-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                            className="flex-1 text-s border border-blue-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                             onClick={(e) => e.stopPropagation()}
                                         />
                                     ) : (
@@ -984,6 +1035,19 @@ const Workspace: React.FC<WorkspaceProps> = ({
                                             >
                                                 <Edit2 size={12} />
                                             </button>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDeleteDocInternal(
+                                                        doc.id,
+                                                    );
+                                                }}
+                                                className="p-1 hover:bg-slate-300 rounded text-slate-400 hover:text-red-500 transition-all"
+                                                title="삭제"
+                                            >
+                                                <Trash2 size={12} />
+                                            </button>
                                         </div>
                                     )}
                                 </div>
@@ -992,7 +1056,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
                         <button
                             type="button"
                             onClick={() => handleCreateDoc("Team")}
-                            className="w-full flex items-center space-x-2 px-2 py-1.5 text-sm text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
+                            className="w-full flex items-center space-x-2 px-2 py-1.5 text-sm text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
                         >
                             <Plus size={14} />
                             <span>새 공유 문서 추가</span>
@@ -1182,7 +1246,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
                                     placeholder="제목 없음"
                                 />
 
-                                <div className="flex items-center space-x-4 text-sm text-slate-400 pb-4 border-b border-slate-100">
+                                <div className="flex items-center space-x-4 text-sm text-slate-500 pb-4 border-b border-slate-100">
                                     <div className="flex items-center space-x-1">
                                         <UserIcon size={14} />
                                         <span>{selectedDoc.authorName}</span>
@@ -1202,7 +1266,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
                                         handleContentChange(e.target.value)
                                     }
                                     placeholder="여기에 내용을 입력하세요..."
-                                    className="w-full h-[calc(100vh-400px)] resize-none border-none focus:ring-0 p-0 text-lg leading-relaxed text-slate-700 placeholder-slate-300 bg-transparent focus:outline-none"
+                                    className="w-full h-[calc(100vh-400px)] resize-none border-none focus:ring-0 p-0 text-lg leading-relaxed text-slate-700 placeholder-slate-400 bg-transparent focus:outline-none"
                                 />
                             </div>
                         </div>

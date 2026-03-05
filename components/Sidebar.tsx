@@ -25,7 +25,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
     const menuItems = [
         { id: "dashboard", label: "대시보드", icon: LayoutDashboard },
-        { id: "schedule", label: "일정 / 연차", icon: Calendar },
+        { id: "schedule", label: "일정", icon: Calendar },
         { id: "workspace", label: "워크스페이스", icon: BookOpen },
         { id: "mypage", label: "마이페이지", icon: UserCircle },
         { id: "members", label: "구성원", icon: Users },
@@ -35,7 +35,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div className="w-64 bg-slate-900 text-white flex flex-col h-full shadow-xl">
             <div
                 className="p-6 flex items-center space-x-3 border-b border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors"
-                onClick={() => setActiveTab("dashboard")}
+                onClick={() => window.location.reload()}
             >
                 <Hexagon className="text-blue-500 w-8 h-8" strokeWidth={2.5} />
                 <span className="text-xl font-bold tracking-tight">

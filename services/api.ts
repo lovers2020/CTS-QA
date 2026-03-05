@@ -37,6 +37,16 @@ export const api = {
         return { ...schedule, id: docRef.id };
     },
 
+    updateSchedule: async (schedule: ScheduleEvent): Promise<ScheduleEvent> => {
+        const { id, ...data } = schedule;
+        await db.collection("schedules").doc(id).update(sanitize(data));
+        return schedule;
+    },
+
+    deleteSchedule: async (id: string): Promise<void> => {
+        await db.collection("schedules").doc(id).delete();
+    },
+
     // --- Activities (Feed) ---
     getActivities: async (): Promise<Activity[]> => {
         try {
@@ -53,6 +63,7 @@ export const api = {
                     action: data.action,
                     target: data.target,
                     time: data.time,
+                    createdAt: data.createdAt,
                 } as Activity;
             });
         } catch (e) {
@@ -71,7 +82,28 @@ export const api = {
         const docRef = await db
             .collection("activities")
             .add(sanitize(newActivity));
-        return { id: docRef.id, ...activity, time: "방금 전" };
+        return {
+            id: docRef.id,
+            ...activity,
+            time: "방금 전",
+            createdAt: newActivity.createdAt,
+        };
+    },
+
+    deleteActivitiesByUser: async (userName: string): Promise<void> => {
+        try {
+            const snapshot = await db
+                .collection("activities")
+                .where("user", "==", userName)
+                .get();
+            const batch = db.batch();
+            snapshot.docs.forEach((doc: any) => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+        } catch (e) {
+            console.error("Error deleting activities:", e);
+        }
     },
 
     // --- Docs ---

@@ -169,6 +169,18 @@ const App: React.FC = () => {
         setActivities((prev) => [activityLog, ...prev]);
     };
 
+    const handleUpdateSchedule = async (schedule: ScheduleEvent) => {
+        const updatedSchedule = await api.updateSchedule(schedule);
+        setSchedules((prev) =>
+            prev.map((s) => (s.id === schedule.id ? updatedSchedule : s)),
+        );
+    };
+
+    const handleDeleteSchedule = async (id: string) => {
+        await api.deleteSchedule(id);
+        setSchedules((prev) => prev.filter((s) => s.id !== id));
+    };
+
     // --- Workspace Logic with API ---
     const handleAddDoc = async (doc: Doc) => {
         setDocs((prev) => [...prev, doc]);
@@ -252,22 +264,67 @@ const App: React.FC = () => {
         priority: "High" | "Medium" | "Low",
     ) => {
         if (!currentUser) return;
+        const today = new Date();
+        const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
         const newTask: Task = {
             id: Math.random().toString(36).substr(2, 9),
             userId: currentUser.id,
             title,
-            dueDate: "오늘",
+            dueDate: dateStr,
             completed: false,
             priority,
+            status: "Todo", // Default status
             hasLoggedCompletion: false,
         };
         setTasks((prev) => [...prev, newTask]);
         await api.addTask(newTask);
     };
 
+    const handleUpdateTaskStatus = async (
+        taskId: string,
+        status: "Todo" | "In Progress" | "Done",
+    ) => {
+        const task = tasks.find((t) => t.id === taskId);
+        if (task) {
+            const updatedTask = {
+                ...task,
+                status,
+                completed: status === "Done",
+            };
+            setTasks((prev) =>
+                prev.map((t) => (t.id === taskId ? updatedTask : t)),
+            );
+            await api.updateTask(updatedTask);
+        }
+    };
+
     const handleDeleteTask = async (taskId: string) => {
         setTasks((prev) => prev.filter((t) => t.id !== taskId));
         await api.deleteTask(taskId);
+    };
+
+    const handleClearActivities = async () => {
+        if (!currentUser) return;
+        if (
+            confirm(
+                "나의 활동 로그를 모두 삭제하시겠습니까? (다른 사용자에게는 영향이 없습니다)",
+            )
+        ) {
+            const now = new Date().toISOString();
+            const updatedUser = { ...currentUser, lastClearedActivityAt: now };
+
+            setCurrentUser(updatedUser);
+            setUsers((prev) =>
+                prev.map((u) => (u.id === currentUser.id ? updatedUser : u)),
+            );
+
+            // Update user in DB
+            await api.updateUser(
+                { lastClearedActivityAt: now },
+                currentUser.id,
+            );
+        }
     };
 
     const handleQuickAction = (action: string) => {
@@ -314,7 +371,7 @@ const App: React.FC = () => {
                 <header className="bg-white border-b border-slate-100 px-8 py-4 sticky top-0 z-10 flex justify-between items-center shadow-sm">
                     <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
                         {activeTab === "dashboard" && "대시보드"}
-                        {activeTab === "schedule" && "일정 및 연차 관리"}
+                        {activeTab === "schedule" && "일정 관리"}
                         {activeTab === "workspace" && "워크스페이스"}
                         {activeTab === "mypage" && "마이페이지"}
                         {activeTab === "members" && "구성원"}
@@ -330,11 +387,19 @@ const App: React.FC = () => {
                                 schedules={schedules}
                                 docs={docs}
                                 tasks={tasks}
-                                activities={activities}
+                                activities={activities.filter(
+                                    (a) =>
+                                        !currentUser.lastClearedActivityAt ||
+                                        (a.createdAt &&
+                                            a.createdAt >
+                                                currentUser.lastClearedActivityAt),
+                                )}
                                 onToggleTask={handleToggleTask}
                                 onAddTask={handleAddTask}
                                 onDeleteTask={handleDeleteTask}
+                                onUpdateTaskStatus={handleUpdateTaskStatus}
                                 onQuickAction={handleQuickAction}
+                                onClearActivities={handleClearActivities}
                             />
                         )}
                         {activeTab === "schedule" && (
@@ -342,6 +407,8 @@ const App: React.FC = () => {
                                 user={currentUser}
                                 schedules={schedules}
                                 onAddSchedule={handleAddSchedule}
+                                onUpdateSchedule={handleUpdateSchedule}
+                                onDeleteSchedule={handleDeleteSchedule}
                             />
                         )}
                         {activeTab === "workspace" && (

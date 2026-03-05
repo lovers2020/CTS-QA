@@ -46,6 +46,7 @@ export interface User {
     name: string;
     role: "Admin" | "Member";
     password?: string;
+    lastClearedActivityAt?: string;
 }
 
 export interface Task {
@@ -55,6 +56,7 @@ export interface Task {
     dueDate: string;
     completed: boolean;
     priority: "High" | "Medium" | "Low";
+    status: "Todo" | "In Progress" | "Done"; // Added status for Kanban
     hasLoggedCompletion?: boolean; // Track if completion has been logged to feed
 }
 
@@ -71,4 +73,5 @@ export interface Activity {
     action: string;
     target: string;
     time: string;
+    createdAt?: string;
 }

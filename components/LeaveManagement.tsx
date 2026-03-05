@@ -6,15 +6,20 @@ interface ScheduleManagementProps {
     user: User;
     schedules: ScheduleEvent[];
     onAddSchedule: (schedule: ScheduleEvent) => void;
+    onUpdateSchedule: (schedule: ScheduleEvent) => void;
+    onDeleteSchedule: (id: string) => void;
 }
 
 const ScheduleManagement: React.FC<ScheduleManagementProps> = ({
     user,
     schedules,
     onAddSchedule,
+    onUpdateSchedule,
+    onDeleteSchedule,
 }) => {
     const [showForm, setShowForm] = useState(false);
     const [currentDate, setCurrentDate] = useState(new Date());
+    const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         title: "",
         type: ScheduleType.MEETING,
@@ -51,8 +56,22 @@ const ScheduleManagement: React.FC<ScheduleManagementProps> = ({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validation: Start time must be earlier than End time
+        const startDateTime = new Date(
+            `${formData.startDate}T${formData.startTime || "00:00"}`,
+        );
+        const endDateTime = new Date(
+            `${formData.endDate}T${formData.endTime || "23:59"}`,
+        );
+
+        if (startDateTime >= endDateTime) {
+            alert("종료 시간은 시작 시간보다 늦어야 합니다.");
+            return;
+        }
+
         const newSchedule: ScheduleEvent = {
-            id: Math.random().toString(36).substr(2, 9),
+            id: editingId || Math.random().toString(36).substr(2, 9),
             userId: user.id,
             userName: user.name,
             title: formData.title,
@@ -64,8 +83,44 @@ const ScheduleManagement: React.FC<ScheduleManagementProps> = ({
             description: formData.description,
         };
 
-        onAddSchedule(newSchedule);
+        if (editingId) {
+            onUpdateSchedule(newSchedule);
+        } else {
+            onAddSchedule(newSchedule);
+        }
+
+        handleCloseForm();
+    };
+
+    const handleEditClick = (schedule: ScheduleEvent) => {
+        if (schedule.userId !== user.id) {
+            alert("자신의 일정만 수정할 수 있습니다.");
+            return;
+        }
+        setEditingId(schedule.id);
+        setFormData({
+            title: schedule.title,
+            type: schedule.type,
+            startDate: schedule.startDate,
+            endDate: schedule.endDate,
+            startTime: schedule.startTime || "",
+            endTime: schedule.endTime || "",
+            description: schedule.description || "",
+        });
+        setShowForm(true);
+    };
+
+    const handleDeleteClick = () => {
+        if (!editingId) return;
+        if (confirm("이 일정을 삭제하시겠습니까?")) {
+            onDeleteSchedule(editingId);
+            handleCloseForm();
+        }
+    };
+
+    const handleCloseForm = () => {
         setShowForm(false);
+        setEditingId(null);
         setFormData({
             title: "",
             type: ScheduleType.MEETING,
@@ -75,6 +130,20 @@ const ScheduleManagement: React.FC<ScheduleManagementProps> = ({
             endTime: "",
             description: "",
         });
+    };
+
+    const handleDateClick = (dateStr: string) => {
+        setEditingId(null);
+        setFormData({
+            title: "",
+            type: ScheduleType.MEETING,
+            startDate: dateStr,
+            endDate: dateStr,
+            startTime: "",
+            endTime: "",
+            description: "",
+        });
+        setShowForm(true);
     };
 
     const getTypeColorStyles = (type: ScheduleType) => {
@@ -132,7 +201,8 @@ const ScheduleManagement: React.FC<ScheduleManagementProps> = ({
             days.push(
                 <div
                     key={day}
-                    className={`border-b border-r border-slate-100 p-2 min-h-[120px] transition-colors hover:bg-slate-50 flex flex-col ${isToday ? "bg-blue-50/30" : ""}`}
+                    onClick={() => handleDateClick(fullDateStr)}
+                    className={`border-b border-r border-slate-100 p-2 min-h-[120px] transition-colors hover:bg-slate-50 flex flex-col cursor-pointer ${isToday ? "bg-blue-50/30" : ""}`}
                 >
                     <div className="flex justify-between items-start mb-2">
                         <span
@@ -154,13 +224,22 @@ const ScheduleManagement: React.FC<ScheduleManagementProps> = ({
                         {daySchedules.map((schedule) => (
                             <div
                                 key={`${schedule.id}-${day}`}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditClick(schedule);
+                                }}
                                 className={`text-[11px] px-1.5 py-1 rounded border truncate cursor-pointer transition-colors ${getTypeColorStyles(schedule.type)}`}
                                 title={`${schedule.title} (${schedule.userName})\n${schedule.description}`}
                             >
                                 <div className="flex items-center gap-1">
-                                    {schedule.startTime && (
+                                    {(schedule.startTime ||
+                                        schedule.endTime) && (
                                         <span className="font-mono text-[10px] opacity-80">
                                             {schedule.startTime}
+                                            {schedule.startTime &&
+                                                schedule.endTime &&
+                                                "-"}
+                                            {schedule.endTime}
                                         </span>
                                     )}
                                     <span className="font-semibold truncate">
@@ -272,15 +351,21 @@ const ScheduleManagement: React.FC<ScheduleManagementProps> = ({
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
                     <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-lg border border-slate-100 animate-scale-in relative">
                         <button
-                            onClick={() => setShowForm(false)}
+                            onClick={handleCloseForm}
                             className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"
                         >
                             <X size={20} />
                         </button>
 
                         <h3 className="text-xl font-bold mb-6 text-slate-800 flex items-center gap-2">
-                            <Plus className="text-blue-600" size={24} />새 일정
-                            등록
+                            {editingId ? (
+                                <div className="text-blue-600">일정 수정</div>
+                            ) : (
+                                <>
+                                    <Plus className="text-blue-600" size={24} />
+                                    새 일정 등록
+                                </>
+                            )}
                         </h3>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
@@ -414,21 +499,42 @@ const ScheduleManagement: React.FC<ScheduleManagementProps> = ({
                                 </div>
                             </div>
 
-                            <div className="flex justify-end space-x-3 mt-6 pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowForm(false)}
-                                    className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors font-medium"
-                                >
-                                    취소
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm transition-colors font-medium flex items-center gap-2"
-                                >
-                                    <Plus size={16} />
-                                    등록하기
-                                </button>
+                            <div className="flex justify-between mt-6 pt-2">
+                                {editingId ? (
+                                    <button
+                                        type="button"
+                                        onClick={handleDeleteClick}
+                                        className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium flex items-center gap-1"
+                                    >
+                                        <X size={16} />
+                                        삭제
+                                    </button>
+                                ) : (
+                                    <div></div>
+                                )}
+
+                                <div className="flex space-x-3">
+                                    <button
+                                        type="button"
+                                        onClick={handleCloseForm}
+                                        className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors font-medium"
+                                    >
+                                        취소
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm transition-colors font-medium flex items-center gap-2"
+                                    >
+                                        {editingId ? (
+                                            "수정하기"
+                                        ) : (
+                                            <>
+                                                <Plus size={16} />
+                                                등록하기
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>
