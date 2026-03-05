@@ -194,9 +194,10 @@ const DroppableColumn = ({
     });
 
     return (
+        // 나의 할 일 부분 
         <div
             ref={setNodeRef}
-            className={`flex-1 bg-slate-50 rounded-xl p-3 flex flex-col h-full min-h-[600px] transition-colors ${isOver ? "bg-blue-50 ring-2 ring-blue-100" : ""}`}
+            className={`flex-1 bg-slate-50 rounded-xl p-3 flex flex-col h-full min-h-[500px] max-h-[800px] transition-colors ${isOver ? "bg-blue-50 ring-2 ring-blue-100" : ""}`}
         >
             <div
                 className={`flex items-center justify-between mb-3 pb-2 border-b border-slate-200 ${colorClass}`}
@@ -507,7 +508,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                         </div>
 
                         {/* 2. Kanban Board */}
-                        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col h-full">
+                        <div className="bg-white rounded-2xl  p-6 shadow-sm border border-slate-100 flex flex-col h-full">
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="font-bold text-slate-800 flex items-center gap-2">
                                     <CheckCircle2
